@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Map</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        .map-overlay {
+            position: absolute;
+            left: 0;
+            padding: px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="map"></div>
+    <div class="map-overlay top">
+        <button style="font-size:2em;" onclick="move()">
+        Show stops between MIT and Harvard</button></div>
+
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic2FrZXRhZGhpa2FybGEiLCJhIjoiY2tmZm9kYm0zMDBlajJzcWs3ZG82ZjZrcSJ9.eNXoAlR3Yd41Y-1jeLvRzA';
+
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            zoom: 13,
+            center: [-71.14344436, 42.35004476]
+        });
+
+
+        async function getBusLocations() {
+            const url = 'https://api-v3.mbta.com/vehicles?filter[route]=1&include=trip';
+            const response = await fetch(url);
+            const json = await response.json();
+            return json.data;
+        }
+
+        function markerCreator(log_lat) {
+            var marker = new mapboxgl.Marker()
+                .setLngLat(log_lat)
+                .addTo(map);
+            return marker;
+        }
+        async function run() {
+            const locations = await getBusLocations();
+            busLocations = [];
+            markers = [];
+            for (let index = 0; index < locations.length; index++) {
+                busLocations.push([locations[index].attributes.longitude, locations[index].attributes.latitude]);
+                markers.push(markerCreator([locations[index].attributes.longitude, locations[index].attributes.latitude]));
+            }
+            console.log(busLocations);
+            setTimeout(function() {
+                for (let index = 0; index < markers.length; index++) {
+                    markers[index].remove();
+                }
+            }, 8000);
+            setTimeout(run, 8000);
+        }
+
+        run()
+    </script>
+
+
+
+
+</body>
+
+</html>
